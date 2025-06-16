@@ -11,39 +11,59 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
 
-typedef std::function<void(uint8_t*, uint32_t, int32_t, int32_t, int32_t)> VideoFrameCallback;
+typedef std::function<void(uint8_t *, uint32_t, int32_t, int32_t, int32_t)> VideoFrameCallback;
 
-class GstPlayer {
-  public:
-    GstPlayer(const std::vector<std::string>& cmd_arguments);
+class GstPlayer
+{
+public:
+  GstPlayer(const std::vector<std::string> &cmd_arguments);
 
-    ~GstPlayer(void);
+  ~GstPlayer(void);
 
-    void onVideo(VideoFrameCallback callback);
+  void onVideo(VideoFrameCallback callback);
 
-    void play(const gchar* pipelineString);
+  void play(const gchar *pipelineString);
 
-  private:
-    std::string pipelineString_;
-    VideoFrameCallback video_callback_;
+  void play();
 
-    GstElement *pipeline = nullptr;
-    GstElement *sink_ = nullptr;
+  void pause();
 
-    void freeGst(void);
+  void stop();
 
-    static GstFlowReturn newSample(GstAppSink *sink, gpointer gSelf);
+  bool isPlaying();
+
+  int64_t position();
+
+  int64_t duration();
+
+  void seekTo(int64_t position_ms);
+
+  void dispose(int32_t id);
+
+private:
+  std::string pipelineString_;
+  VideoFrameCallback video_callback_;
+
+  GstElement *pipeline = nullptr;
+  GstElement *sink_ = nullptr;
+
+  bool playing_ = false;
+
+  void freeGst(void);
+
+  static GstFlowReturn newSample(GstAppSink *sink, gpointer gSelf);
 };
 
-class GstPlayers {
-  public:
-    GstPlayer* Get(int32_t id, std::vector<std::string> cmd_arguments = {});
+class GstPlayers
+{
+public:
+  GstPlayer *Get(int32_t id, std::vector<std::string> cmd_arguments = {});
 
-    void Dispose(int32_t id);
+  void dispose(int32_t id);
 
-  private:
-    std::mutex mutex_;
-    std::map<int32_t, std::unique_ptr<GstPlayer>> players_;
+private:
+  std::mutex mutex_;
+  std::map<int32_t, std::unique_ptr<GstPlayer>> players_;
 };
 
 static std::unique_ptr<GstPlayers> g_players = std::make_unique<GstPlayers>();

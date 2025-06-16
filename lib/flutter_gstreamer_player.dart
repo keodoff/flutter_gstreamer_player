@@ -1,11 +1,11 @@
-
 import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 class GstPlayerTextureController {
-  static const MethodChannel _channel = MethodChannel('flutter_gstreamer_player');
+  static const MethodChannel _channel =
+      MethodChannel('flutter_gstreamer_player');
 
   int textureId = 0;
   static int _id = 0;
@@ -23,8 +23,37 @@ class GstPlayerTextureController {
     return textureId;
   }
 
-  Future<Null> dispose() {
-      return _channel.invokeMethod('dispose', {'textureId': textureId});
+  Future<Duration> position() async {
+    final int ms = await _channel
+        .invokeMethod('position', {'playerId': GstPlayerTextureController._id});
+    return Duration(milliseconds: ms);
+  }
+
+  Future<Duration> duration() async {
+    final int ms = await _channel
+        .invokeMethod('duration', {'playerId': GstPlayerTextureController._id});
+    return Duration(milliseconds: ms);
+  }
+
+  Future<void> play() async {
+    await _channel
+        .invokeMethod('play', {'playerId': GstPlayerTextureController._id});
+  }
+
+  Future<void> pause() async {
+    await _channel
+        .invokeMethod('pause', {'playerId': GstPlayerTextureController._id});
+  }
+
+  Future<void> seekTo(Duration position) async {
+    await _channel.invokeMethod('seekTo', {
+      'playerId': GstPlayerTextureController._id,
+      'position': position.inMilliseconds,
+    });
+  }
+
+  Future<void> dispose() async {
+      await _channel.invokeMethod('dispose', {'textureId': textureId});
   }
 
   bool get isInitialized => textureId != null;
@@ -56,6 +85,12 @@ class _GstPlayerState extends State<GstPlayer> {
     super.didUpdateWidget(oldWidget);
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<Null> initializeController() async {
     await _controller.initialize(
       widget.pipeline,
@@ -72,8 +107,8 @@ class _GstPlayerState extends State<GstPlayer> {
       case TargetPlatform.android:
         return Container(
           child: _controller.isInitialized
-            ? Texture(textureId: _controller.textureId)
-            : null,
+              ? Texture(textureId: _controller.textureId)
+              : null,
         );
         break;
       case TargetPlatform.iOS:
