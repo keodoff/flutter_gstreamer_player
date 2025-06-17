@@ -22,6 +22,8 @@ public:
 
   void onVideo(VideoFrameCallback callback);
 
+  void dispose(int32_t id);
+
   void play(const gchar *pipelineString);
 
   void play();
@@ -32,13 +34,13 @@ public:
 
   bool isPlaying();
 
+  void seekTo(int64_t position_ms);
+
   int64_t position();
 
   int64_t duration();
 
-  void seekTo(int64_t position_ms);
-
-  void dispose(int32_t id);
+  double aspectRatio();
 
 private:
   std::string pipelineString_;
@@ -48,6 +50,7 @@ private:
   GstElement *sink_ = nullptr;
 
   bool playing_ = false;
+  double aspectRatio_ = 0;
 
   void freeGst(void);
 

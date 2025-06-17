@@ -26,7 +26,7 @@ GstPlayer::~GstPlayer()
   // TODO Should free GStreamers stuff in destructor,
   // but when implemented, flutter complains something about texture
   // when closing application
-  // freeGst();
+  freeGst();
 }
 
 void GstPlayer::onVideo(VideoFrameCallback callback)
@@ -90,6 +90,11 @@ GstFlowReturn GstPlayer::newSample(GstAppSink *sink, gpointer gSelf)
           video_info.width,
           video_info.height,
           video_info.stride[0]);
+
+      self->aspectRatio_ = (double)video_info.width / (double)video_info.height;
+
+      // g_print("video_info.aspectRatio = %.6f, video_info.width = %d, height = %d\n",
+      //         self->aspectRatio_, video_info.width, video_info.height);
 
       gst_buffer_unmap(buffer_, &bufferInfo);
       gst_video_frame_unmap(&vframe);
@@ -206,4 +211,9 @@ int64_t GstPlayer::duration()
     return dur / GST_MSECOND;
   }
   return 0;
+}
+
+double GstPlayer::aspectRatio()
+{
+  return aspectRatio_;
 }

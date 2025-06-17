@@ -82,25 +82,11 @@ static void flutter_gstreamer_player_plugin_handle_method_call(
         FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_int(
             ((VideoOutletPrivate *)video_outlet_get_instance_private(it->second))->texture_id)));
   }
-  // else if (strcmp(method, "dispose") == 0)
-  // {
-  //   auto arguments = fl_method_call_get_args(method_call);
-  //   int32_t texture_id =
-  //       fl_value_get_int(fl_value_lookup_string(arguments, "textureId"));
-  //   int32_t player_id =
-  //       fl_value_get_int(fl_value_lookup_string(arguments, "playerId"));
-  //   GstPlayer *gstPlayer = g_players->Get(player_id);
-  //   gstPlayer->dispose(texture_id);
-  // }
+
   else if (strcmp(method, "dispose") == 0)
   {
-    auto arguments = fl_method_call_get_args(method_call);
-    int32_t player_id =
-        fl_value_get_int(fl_value_lookup_string(arguments, "playerId"));
-
-    g_players->dispose(player_id);
-
-    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    g_autoptr(FlValue) result = fl_value_new_bool(true);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(result));
   }
   else if (strcmp(method, "play") == 0)
   {
@@ -165,6 +151,14 @@ static void flutter_gstreamer_player_plugin_handle_method_call(
     GstPlayer *gstPlayer = g_players->Get(player_id);
     int64_t dur = gstPlayer->duration();
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_int(dur)));
+  }
+  else if (strcmp(method, "aspectRatio") == 0)
+  {
+    auto arguments = fl_method_call_get_args(method_call);
+    int32_t player_id = fl_value_get_int(fl_value_lookup_string(arguments, "playerId"));
+    GstPlayer *gstPlayer = g_players->Get(player_id);
+    double aspectRatio = gstPlayer->aspectRatio();
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_float(aspectRatio)));
   }
   else
   {

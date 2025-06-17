@@ -4,11 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 class GstPlayerTextureController {
-  static const MethodChannel _channel =
-      MethodChannel('flutter_gstreamer_player');
+  static const MethodChannel _channel = MethodChannel(
+    'flutter_gstreamer_player',
+  );
 
   int textureId = 0;
   static int _id = 0;
+  bool isPlaying = false;
 
   Future<int> initialize(String pipeline) async {
     // No idea why, but you have to increase `_id` first before pass it to method channel,
@@ -20,29 +22,43 @@ class GstPlayerTextureController {
       'playerId': GstPlayerTextureController._id,
     });
 
+    isPlaying = true;
     return textureId;
   }
 
   Future<Duration> position() async {
-    final int ms = await _channel
-        .invokeMethod('position', {'playerId': GstPlayerTextureController._id});
+    final int ms = await _channel.invokeMethod('position', {
+      'playerId': GstPlayerTextureController._id,
+    });
     return Duration(milliseconds: ms);
   }
 
   Future<Duration> duration() async {
-    final int ms = await _channel
-        .invokeMethod('duration', {'playerId': GstPlayerTextureController._id});
+    final int ms = await _channel.invokeMethod('duration', {
+      'playerId': GstPlayerTextureController._id,
+    });
     return Duration(milliseconds: ms);
   }
 
   Future<void> play() async {
-    await _channel
-        .invokeMethod('play', {'playerId': GstPlayerTextureController._id});
+    await _channel.invokeMethod('play', {
+      'playerId': GstPlayerTextureController._id,
+    });
+    isPlaying = true;
   }
 
   Future<void> pause() async {
-    await _channel
-        .invokeMethod('pause', {'playerId': GstPlayerTextureController._id});
+    await _channel.invokeMethod('pause', {
+      'playerId': GstPlayerTextureController._id,
+    });
+    isPlaying = false;
+  }
+
+  Future<void> stop() async {
+    await _channel.invokeMethod('stop', {
+      'playerId': GstPlayerTextureController._id,
+    });
+    isPlaying = false;
   }
 
   Future<void> seekTo(Duration position) async {
@@ -52,8 +68,14 @@ class GstPlayerTextureController {
     });
   }
 
+  Future<double> aspectRatio() async {
+    return await _channel.invokeMethod('aspectRatio', {
+      'playerId': GstPlayerTextureController._id,
+    });
+  }
+
   Future<void> dispose() async {
-      await _channel.invokeMethod('dispose', {'textureId': textureId});
+    await _channel.invokeMethod('dispose', {'textureId': textureId});
   }
 
   bool get isInitialized => textureId != null;
@@ -92,9 +114,7 @@ class _GstPlayerState extends State<GstPlayer> {
   }
 
   Future<Null> initializeController() async {
-    await _controller.initialize(
-      widget.pipeline,
-    );
+    await _controller.initialize(widget.pipeline);
     setState(() {});
   }
 
