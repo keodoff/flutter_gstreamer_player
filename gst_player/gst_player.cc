@@ -174,6 +174,10 @@ void GstPlayer::seekTo(int64_t position_ms)
       (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
       GST_SEEK_TYPE_SET, position_ms * GST_MSECOND,
       GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+
+  // 防止 unused variable 警告
+  (void)success;
+
   gst_app_sink_set_drop(GST_APP_SINK(sink_), FALSE);
 
   // g_print("[GstPlayer] seekTo called. From %.2f sec -> %.2f sec. Success: %s\n",
